@@ -1,0 +1,237 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Lora:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply transition-colors duration-500;
+  }
+
+  body {
+    font-family: 'Lora', serif;
+    @apply bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes floatGently {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in-down {
+    animation: fadeInDown 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.8s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.8s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.6s ease-out forwards;
+  }
+
+  .animate-float {
+    animation: floatGently 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 3s ease-in-out infinite;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:translate-y-[-4px] hover:shadow-2xl;
+  }
+
+  .glass-effect {
+    @apply bg-background/50 backdrop-blur-xl border border-foreground/5;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 15 15% 7%;
+    --foreground: 45 8% 96%;
+    --card: 15 15% 11%;
+    --card-foreground: 45 8% 96%;
+    --popover: 15 15% 11%;
+    --popover-foreground: 45 8% 96%;
+    --primary: 45 96% 56%;
+    --primary-foreground: 15 15% 7%;
+    --secondary: 15 15% 16%;
+    --secondary-foreground: 45 8% 96%;
+    --muted: 15 15% 22%;
+    --muted-foreground: 45 8% 70%;
+    --accent: 45 96% 56%;
+    --accent-foreground: 15 15% 7%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 15 15% 7%;
+    --border: 15 15% 18%;
+    --input: 15 15% 13%;
+    --ring: 45 96% 56%;
+    --chart-1: 45 96% 56%;
+    --chart-2: 45 90% 48%;
+    --chart-3: 45 8% 70%;
+    --chart-4: 45 85% 52%;
+    --chart-5: 45 80% 46%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 15 15% 7%;
+    --foreground: 45 8% 96%;
+    --card: 15 15% 11%;
+    --card-foreground: 45 8% 96%;
+    --popover: 15 15% 11%;
+    --popover-foreground: 45 8% 96%;
+    --primary: 45 96% 56%;
+    --primary-foreground: 15 15% 7%;
+    --secondary: 15 15% 16%;
+    --secondary-foreground: 45 8% 96%;
+    --muted: 15 15% 22%;
+    --muted-foreground: 45 8% 70%;
+    --accent: 45 96% 56%;
+    --accent-foreground: 15 15% 7%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 15 15% 7%;
+    --border: 15 15% 18%;
+    --input: 15 15% 13%;
+    --ring: 45 96% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .premium-heading {
+    @apply font-playfair font-semibold tracking-tight;
+  }
+
+  .premium-border {
+    @apply border-border/30;
+  }
+
+  .luxury-button {
+    @apply relative overflow-hidden font-semibold transition-all duration-500 hover-lift;
+  }
+
+  .luxury-card {
+    @apply glass-effect rounded-xl p-8 sm:p-10 shadow-2xl;
+  }
+
+  .luxury-input {
+    @apply bg-input border-border/50 text-foreground placeholder:text-muted-foreground/50 transition-all duration-300 focus:border-primary/50 focus:ring-primary/20;
+  }
+
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+}
+
+
