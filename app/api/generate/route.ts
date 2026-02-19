@@ -5,9 +5,10 @@ import { z } from 'zod'
 
 import { CampaignResponse, mockCampaign } from '@/lib/campaign-types'
 
-const gemini = createGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-})
+const createGeminiClient = (apiKey: string) =>
+  createGoogleGenerativeAI({
+    apiKey,
+  })
 
 const baseSystemPrompt = `
 You are a world-class marketing strategist and copywriter. Generate high-quality, persuasive, creative copy tailored to the inputs.
@@ -129,24 +130,23 @@ const getModelCandidates = () => {
   return Array.from(new Set([primary, ...fallbackList, ...defaults]))
 }
 
+const getGeminiApiKeys = () => {
+  const keys = [
+    process.env.GEMINI_API_KEY1,
+    process.env.GEMINI_API_KEY2,
+    process.env.GEMINI_API_KEY3,
+  ]
+    .map((key) => key?.trim())
+    .filter((key): key is string => Boolean(key))
+
+  if (keys.length > 0) return keys
+
+  const legacyKey = process.env.GEMINI_API_KEY?.trim()
+  return legacyKey ? [legacyKey] : []
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5399ccbd-a4b4-4119-9292-6ee6cb0b29f5', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: 'debug-session',
-        runId: 'pre-fix',
-        hypothesisId: 'H-openai-1',
-        location: 'app/api/generate/route.ts:42',
-        message: 'POST /api/generate invoked',
-        data: { hasGeminiKey: Boolean(process.env.GEMINI_API_KEY) },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
-
     const body = await req.json()
 
     const {
@@ -211,7 +211,9 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join('\n\n')
 
-    if (!process.env.GEMINI_API_KEY) {
+    const geminiApiKeys = getGeminiApiKeys()
+
+    if (geminiApiKeys.length === 0) {
       const mockResponse =
         stage === 'stage1'
           ? { landingPage: mockCampaign.landingPage, taglines: mockCampaign.taglines }
@@ -231,47 +233,67 @@ export async function POST(req: NextRequest) {
     const modelCandidates = getModelCandidates()
     let lastError: unknown = null
     let sawRateLimit = false
+    let sawAuth = false
+    let sawOther = false
 
-    for (const modelName of modelCandidates) {
-      try {
-        const result = await generateObject({
-          model: gemini(modelName),
-          system: fullSystemPrompt,
-          prompt: userMessage,
-          schema: stage === 'stage1' ? stage1ZodSchema : stage2ZodSchema,
-        })
+    for (const apiKey of geminiApiKeys) {
+      const gemini = createGeminiClient(apiKey)
+      let keySawOther = false
+      let keyAborted = false
 
-        return NextResponse.json<CampaignResponse>(result.object as CampaignResponse, {
-          headers: {
-            'X-Model-Used': modelName,
-          },
-        })
-      } catch (generateError) {
-        lastError = generateError
+      for (const modelName of modelCandidates) {
+        try {
+          const result = await generateObject({
+            model: gemini(modelName),
+            system: fullSystemPrompt,
+            prompt: userMessage,
+            schema: stage === 'stage1' ? stage1ZodSchema : stage2ZodSchema,
+          })
 
-        if (isAuthError(generateError)) {
-          return NextResponse.json(
-            { error: 'AUTH', message: 'Invalid or missing API key.' },
-            { status: 401 }
-          )
-        }
+          return NextResponse.json<CampaignResponse>(result.object as CampaignResponse, {
+            headers: {
+              'X-Model-Used': modelName,
+            },
+          })
+        } catch (generateError) {
+          lastError = generateError
 
-        if (isRateLimitError(generateError)) {
-          sawRateLimit = true
+          if (isAuthError(generateError)) {
+            sawAuth = true
+            keyAborted = true
+            break
+          }
+
+          if (isRateLimitError(generateError)) {
+            sawRateLimit = true
+            keyAborted = true
+            break
+          }
+
+          // Try the next model for non-auth errors (including unsupported model names)
+          keySawOther = true
           continue
         }
+      }
 
-        // Try the next model for non-auth errors (including unsupported model names)
-        continue
+      if (keySawOther && !keyAborted) {
+        sawOther = true
       }
     }
 
     console.error('All model attempts failed:', lastError)
 
-    if (sawRateLimit) {
+    if (sawRateLimit && !sawOther) {
       return NextResponse.json(
         { error: 'RATE_LIMIT', message: 'All models are rate-limited. Please try again later.' },
         { status: 429 }
+      )
+    }
+
+    if (sawAuth && !sawOther && !sawRateLimit) {
+      return NextResponse.json(
+        { error: 'AUTH', message: 'Invalid or missing API key.' },
+        { status: 401 }
       )
     }
 

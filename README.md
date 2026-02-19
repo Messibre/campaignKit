@@ -13,7 +13,9 @@ npm install
 
 Create or update `.env.local`:
 ```
-GEMINI_API_KEY=your-key
+GEMINI_API_KEY1=your-key-1
+GEMINI_API_KEY2=your-key-2
+GEMINI_API_KEY3=your-key-3
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_FALLBACK_MODELS=gemini-2.5-flash-lite,gemma-3-12b,gemma-3-1b,gemma-3-27b,gemma-3-2b,gemma-3-4b
 CAMPAIGN_ADDITIONAL_PROMPT=

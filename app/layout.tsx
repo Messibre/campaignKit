@@ -16,22 +16,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5399ccbd-a4b4-4119-9292-6ee6cb0b29f5', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'post-fix',
-      hypothesisId: 'H1',
-      location: 'app/layout.tsx:24',
-      message: 'RootLayout rendered',
-      data: {},
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">

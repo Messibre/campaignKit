@@ -10,6 +10,7 @@ import {
 import { ResultsPreview } from "@/components/results-preview";
 import { Footer } from "@/components/footer";
 import type { CampaignResponse } from "@/lib/campaign-types";
+import { exampleCampaigns } from "@/lib/example-campaigns";
 import { toast } from "sonner";
 
 export default function Page() {
@@ -19,6 +20,8 @@ export default function Page() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
+  const examplesRef = useRef<HTMLDivElement>(null);
+  const [showExamples, setShowExamples] = useState(false);
 
   const handleFormSubmit = async (values: CampaignFormValues) => {
     setIsSubmitting(true);
@@ -38,10 +41,14 @@ export default function Page() {
 
       if (stage1Response.status === 429) {
         toast.error("You have reached the rate limit. Please try again later.");
+        setCampaignResult(null);
         return;
       }
       if (stage1Response.status === 401 || stage1Response.status === 403) {
-        toast.error("Invalid or missing API key. Please add your Gemini key.");
+        toast.error(
+          "Invalid or missing API key. Please add your Gemini keys.",
+        );
+        setCampaignResult(null);
         return;
       }
       if (!stage1Response.ok) {
@@ -56,7 +63,9 @@ export default function Page() {
       setCampaignResult(stage1Data);
 
       if (stage1UsingMock) {
-        toast.info("Using demo data (add GEMINI_API_KEY for real generation).");
+        toast.info(
+          "Using demo data (add GEMINI_API_KEY1/2/3 for real generation).",
+        );
       } else {
         toast.success("Landing page ready.");
       }
@@ -88,7 +97,7 @@ export default function Page() {
         }
         if (stage2Response.status === 401 || stage2Response.status === 403) {
           toast.error(
-            "Invalid or missing API key. Please add your Gemini key.",
+            "Invalid or missing API key. Please add your Gemini keys.",
           );
           return;
         }
@@ -105,7 +114,7 @@ export default function Page() {
 
         if (stage2UsingMock && !stage1UsingMock) {
           toast.info(
-            "Emails/social used demo data (add GEMINI_API_KEY for real generation).",
+            "Emails/social used demo data (add GEMINI_API_KEY1/2/3 for real generation).",
           );
         } else if (!stage2UsingMock) {
           toast.success("Emails & social posts ready.");
@@ -131,10 +140,87 @@ export default function Page() {
     formRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleViewExamples = () => {
+    setShowExamples(true);
+    setTimeout(() => {
+      examplesRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  };
+
+  const handleExampleSelect = (exampleId: string) => {
+    const example = exampleCampaigns.find((item) => item.id === exampleId);
+    if (!example) {
+      return;
+    }
+    setFormValues(example.formValues);
+    setCampaignResult(example.campaign);
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 50);
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-      <HeroSection onCtaClick={handleHeroCta} />
+      <Navbar onGenerateClick={handleHeroCta} />
+      <HeroSection onCtaClick={handleHeroCta} onViewExamples={handleViewExamples} />
+      {showExamples ? (
+        <section ref={examplesRef} className="py-16 sm:py-24 bg-background border-b border-border/20">
+          <div className="max-w-6xl mx-auto px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2
+                className="text-4xl sm:text-5xl font-bold text-foreground mb-3"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Example Campaigns
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Explore full kits without adding your own details yet.
+              </p>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-3">
+              {exampleCampaigns.map((example) => (
+                <div
+                  key={example.id}
+                  className="luxury-card p-6 flex flex-col gap-4 animate-fade-in-up"
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                      {example.formValues.campaignGoal}
+                    </p>
+                    <h3 className="text-2xl font-semibold text-foreground">
+                      {example.label}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                      {example.formValues.productDescription}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="px-2.5 py-1 rounded-full border border-border/50">
+                      {example.formValues.tones.join(", ")}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full border border-border/50">
+                      {example.formValues.brandColors}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full border border-border/50">
+                      Short & Punchy
+                    </span>
+                  </div>
+                  <button
+                    className="luxury-button bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-6 py-3 rounded-full text-sm shadow-md hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                    onClick={() => handleExampleSelect(example.id)}
+                  >
+                    View This Example
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
       <CampaignForm
         formRef={formRef}
         onSubmit={handleFormSubmit}

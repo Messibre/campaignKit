@@ -1,4 +1,4 @@
-export interface LandingPageContent {
+﻿export interface LandingPageContent {
   title: string
   hero: string
   features: string[]
@@ -131,4 +131,6 @@ export const mockCampaign: CampaignResponse = {
     'Top-down flat lay of a minimalist work desk with a laptop, notebook, and an elegant reusable bottle made from recycled plastic, neutral color palette, soft natural light, eco-conscious aesthetic.',
   ],
 }
+
+
 

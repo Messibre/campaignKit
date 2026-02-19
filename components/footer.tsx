@@ -10,7 +10,7 @@ export function Footer() {
             Generate landing pages, emails, and social posts in minutes.
           </p>
           <p className="text-xs text-muted-foreground">
-            2025. All rights reserved.
+            2026. All rights reserved.
           </p>
         </div>
         <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">

@@ -5,9 +5,10 @@ import Image from "next/image";
 
 interface HeroSectionProps {
   onCtaClick: () => void;
+  onViewExamples: () => void;
 }
 
-export function HeroSection({ onCtaClick }: HeroSectionProps) {
+export function HeroSection({ onCtaClick, onViewExamples }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden bg-background py-24 sm:py-40 lg:py-48 border-b border-border/20">
       {/* Luxury background accents */}
@@ -71,6 +72,7 @@ export function HeroSection({ onCtaClick }: HeroSectionProps) {
               <Button
                 variant="outline"
                 className="luxury-button border-border/50 text-foreground hover:bg-secondary/30 font-semibold px-10 py-3.5 rounded-full text-base tracking-wide bg-transparent"
+                onClick={onViewExamples}
               >
                 View Examples
               </Button>

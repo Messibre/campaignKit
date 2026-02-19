@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +22,38 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
 
   if (!formValues || !campaignResult?.landingPage) return null
 
+  const sanitizeHtml = (raw: string) => {
+    if (!raw) return ''
+    if (typeof DOMParser === 'undefined') {
+      return raw
+        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '')
+        .replace(/<\s*iframe[^>]*>[\s\S]*?<\s*\/\s*iframe\s*>/gi, '')
+        .replace(/<\s*(object|embed|link|meta)[^>]*>/gi, '')
+        .replace(/\son\w+="[^"]*"/gi, '')
+        .replace(/\son\w+='[^']*'/gi, '')
+        .replace(/\s(href|src)=["']\s*javascript:[^"']*["']/gi, '')
+    }
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(raw, 'text/html')
+    const blockedTags = ['script', 'iframe', 'object', 'embed', 'link', 'meta']
+    blockedTags.forEach((tag) => {
+      doc.querySelectorAll(tag).forEach((el) => el.remove())
+    })
+    doc.querySelectorAll('*').forEach((el) => {
+      Array.from(el.attributes).forEach((attr) => {
+        const name = attr.name.toLowerCase()
+        const value = attr.value.toLowerCase()
+        if (name.startsWith('on')) {
+          el.removeAttribute(attr.name)
+        }
+        if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
+          el.removeAttribute(attr.name)
+        }
+      })
+    })
+    return doc.body.innerHTML
+  }
+
   const copyToClipboard = async (key: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -34,7 +66,7 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
   }
 
   const buildLandingHtml = () => {
-    const html = campaignResult.landingPage?.htmlPreview || ''
+    const html = sanitizeHtml(campaignResult.landingPage?.htmlPreview || '')
     return [
       '<!DOCTYPE html>',
       '<html lang="en">',
@@ -148,7 +180,9 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
             <div className="bg-background/60 border border-border/30 rounded-lg p-6 min-h-40">
               <div
                 className="prose prose-sm max-w-none dark:prose-invert"
-                dangerouslySetInnerHTML={{ __html: campaignResult.landingPage.htmlPreview }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHtml(campaignResult.landingPage.htmlPreview),
+                }}
               />
             </div>
           </div>
@@ -418,3 +452,5 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
     </section>
   )
 }
+
+
