@@ -92,7 +92,7 @@ export function ResultsPreview({
       '<html lang="en">',
       "<head>",
       '  <meta charSet="utf-8" />',
-      `  <title>${landingPage?.title ?? "Landing Page"}</title>`,
+      `  <title>${landingPage?.sectionHeading ?? "Landing Page"}</title>`,
       '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
       "</head>",
       "<body>",
@@ -165,11 +165,13 @@ export function ResultsPreview({
             className="text-3xl font-semibold text-foreground leading-tight"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {landingPage.title}
+            {landingPage.sectionHeading}
           </h4>
-          <p className="text-muted-foreground text-base leading-relaxed">
-            {landingPage.hero}
-          </p>
+          {landingPage.introText ? (
+            <p className="text-muted-foreground text-base leading-relaxed">
+              {landingPage.introText}
+            </p>
+          ) : null}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <h5 className="text-sm font-semibold tracking-widest uppercase text-muted-foreground">

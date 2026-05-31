@@ -28,8 +28,8 @@ Always output valid JSON only (no extra text) with this exact structure (use the
     }
   ],
   "landingPage": {
-    "title": string,
-    "hero": string,
+    "sectionHeading": string,
+    "introText": string, 
     "features": [
       {
         "type": "lead" | "metric" | "detail",
@@ -68,7 +68,7 @@ Always output valid JSON only (no extra text) with this exact structure (use the
 `.trim();
 
 const stage1ExtraInstructions =
-  `Return two distinct hero variants (one short/punchy, one long/story). For all copy fields provide suggested character limits in comments as specified. Prefer active voice and metric-led bullets where possible. Provide 1–3 trust items (mix of logos, testimonials, or stats). For each image prompt include a one-sentence alt text. The htmlPreview field should be a small, semantic Tailwind-compatible block (no scripts, no iframes) suitable for direct insertion into a component; keep it focused on the hero and one feature row. Return design tokens (primaryColor, accentColor, headerFont, bodyFont) and a short spacing hint. Always keep arrays short (max 3 items for heroVariants, max 5 features). Do not include any additional explanation or text — JSON only.
+  `Return two distinct hero variants (one short/punchy, one long/story). For all copy fields provide suggested character limits in comments as specified. Prefer active voice and metric-led bullets where possible. Provide 1–3 trust items (mix of logos, testimonials, or stats). For each image prompt include a one-sentence alt text. The htmlPreview field should be a small, semantic Tailwind-compatible block (no scripts, no iframes) suitable for direct insertion into a component; keep it focused on the hero/feature section with a strong section heading, optional intro text, and a clear feature grid. Return design tokens (primaryColor, accentColor, headerFont, bodyFont) and a short spacing hint. Always keep arrays short (max 3 items for heroVariants, max 5 features). Do not include any additional explanation or text — JSON only.
 `.trim();
 
 const stage2Schema = `
@@ -104,8 +104,8 @@ const stage1ZodSchema = z.object({
     }),
   ),
   landingPage: z.object({
-    title: z.string(),
-    hero: z.string(),
+    sectionHeading: z.string(),
+    introText: z.string().optional(),
     features: z.array(
       z.object({
         type: z.enum(["lead", "metric", "detail"]),
@@ -351,11 +351,21 @@ export async function POST(req: NextRequest) {
             model: gemini(modelName) as any,
             system: fullSystemPrompt,
             prompt: userMessage,
-            schema: stage === "stage1" ? stage1ZodSchema : stage2ZodSchema,
-          } as any);
+            output: "no-schema",
+            mode: "json",
+          });
+
+          const parsed =
+            stage === "stage1"
+              ? stage1ZodSchema.safeParse(result.object)
+              : stage2ZodSchema.safeParse(result.object);
+
+          if (!parsed.success) {
+            throw new Error(`Validation failed: ${parsed.error.message}`);
+          }
 
           return NextResponse.json<CampaignResponse>(
-            result.object as CampaignResponse,
+            parsed.data as CampaignResponse,
             {
               headers: {
                 "X-Model-Used": modelName,

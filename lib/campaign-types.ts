@@ -16,8 +16,8 @@ export interface FeatureItem {
 }
 
 export interface LandingPageContent {
-  title: string;
-  hero: string;
+  sectionHeading: string;
+  introText?: string;
   features: FeatureItem[];
   cta: string;
   htmlPreview: string;
@@ -99,8 +99,9 @@ export const mockCampaign: CampaignResponse = {
     },
   ],
   landingPage: {
-    title: "Introducing EcoFlow Water Bottle",
-    hero: "Stay hydrated while saving the planet with EcoFlow — a premium reusable bottle crafted from recycled ocean plastic.",
+    sectionHeading: "Introducing EcoFlow Water Bottle",
+    introText:
+      "Stay hydrated while saving the planet with EcoFlow — a premium reusable bottle crafted from recycled ocean plastic.",
     features: [
       {
         type: "detail",
@@ -128,11 +129,11 @@ export const mockCampaign: CampaignResponse = {
     cta: "Start your sustainable hydration habit today",
     htmlPreview: `
 <section class="max-w-5xl mx-auto px-6 py-16">
-  <header class="mb-10">
-    <p class="text-sm uppercase tracking-[0.2em] text-emerald-300/80 mb-3">Eco-Friendly Launch</p>
+  <div class="rounded-[2rem] bg-slate-950/90 border border-white/10 shadow-2xl p-10 text-slate-100">
+    <p class="text-sm uppercase tracking-[0.3em] text-emerald-300/80 mb-4">Eco-Friendly Launch</p>
     <h1 class="text-4xl md:text-5xl font-semibold mb-4">Introducing EcoFlow Water Bottle</h1>
-    <p class="text-slate-600 max-w-2xl">Stay hydrated while saving the planet with EcoFlow — a premium reusable bottle crafted from recycled ocean plastic.</p>
-  </header>
+    <p class="text-slate-300 max-w-2xl text-lg leading-relaxed mb-10">Stay hydrated while saving the planet with EcoFlow — a premium reusable bottle crafted from recycled ocean plastic.</p>
+  </div>
   <div class="grid md:grid-cols-[2fr,1.5fr] gap-10 items-start">
     <div class="space-y-6">
       <ul class="space-y-3">

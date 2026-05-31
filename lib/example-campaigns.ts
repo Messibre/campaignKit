@@ -25,8 +25,10 @@ export const exampleCampaigns: ExampleCampaign[] = [
     },
     campaign: {
       landingPage: {
-        title: "V0 AI: The Future of Web Development, Powered by Vercel",
-        hero: "Transform your web development workflow. V0 AI, Vercel's generative AI agent, empowers developers and product owners to effortlessly build stunning web applications and UIs with unprecedented speed and creativity.",
+        sectionHeading:
+          "V0 AI: The Future of Web Development, Powered by Vercel",
+        introText:
+          "Transform your web development workflow. V0 AI, Vercel's generative AI agent, empowers developers and product owners to effortlessly build stunning web applications and UIs with unprecedented speed and creativity.",
         features: [
           {
             type: "detail",
@@ -147,8 +149,9 @@ export const exampleCampaigns: ExampleCampaign[] = [
     },
     campaign: {
       landingPage: {
-        title: "CampaignKit Studio: Marketing Kits, Instantly.",
-        hero: "CampaignKit Studio is your AI-powered sidekick, conjuring complete marketing kits for any project or product. Launch faster, laugh harder.",
+        sectionHeading: "CampaignKit Studio: Marketing Kits, Instantly.",
+        introText:
+          "CampaignKit Studio is your AI-powered sidekick, conjuring complete marketing kits for any project or product. Launch faster, laugh harder.",
         features: [
           {
             type: "detail",
@@ -276,8 +279,9 @@ export const exampleCampaigns: ExampleCampaign[] = [
     },
     campaign: {
       landingPage: {
-        title: "Selam GPT: Ethiopian AI, Reimagined.",
-        hero: "Unlock the Future of Ethiopian Languages with Selam GPT: Where AI Speaks Your World. Create, innovate, and connect like never before.",
+        sectionHeading: "Selam GPT: Ethiopian AI, Reimagined.",
+        introText:
+          "Unlock the Future of Ethiopian Languages with Selam GPT: Where AI Speaks Your World. Create, innovate, and connect like never before.",
         features: [
           {
             type: "detail",
