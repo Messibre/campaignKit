@@ -1,152 +1,174 @@
-﻿'use client'
+﻿"use client";
 
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Mail, Globe, Share2, FileText, Copy, Download, ImageIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import type { CampaignFormValues } from './campaign-form'
-import type { CampaignResponse, CampaignEmail, SocialPost } from '@/lib/campaign-types'
-import JSZip from 'jszip'
-import { saveAs } from 'file-saver'
-import { toast } from 'sonner'
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Mail,
+  Globe,
+  Share2,
+  FileText,
+  Copy,
+  Download,
+  ImageIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { CampaignFormValues } from "./campaign-form";
+import type {
+  CampaignResponse,
+  CampaignEmail,
+  SocialPost,
+} from "@/lib/campaign-types";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { toast } from "sonner";
 
 interface ResultsPreviewProps {
-  formValues: CampaignFormValues | null
-  campaignResult: CampaignResponse | null
+  formValues: CampaignFormValues | null;
+  campaignResult: CampaignResponse | null;
 }
 
-export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewProps) {
-  const [copiedKey, setCopiedKey] = useState<string | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
+export function ResultsPreview({
+  formValues,
+  campaignResult,
+}: ResultsPreviewProps) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  if (!formValues || !campaignResult?.landingPage) return null
+  if (!formValues || !campaignResult?.landingPage) return null;
+
+  const landingPage = campaignResult.landingPage!;
 
   const sanitizeHtml = (raw: string) => {
-    if (!raw) return ''
-    if (typeof DOMParser === 'undefined') {
+    if (!raw) return "";
+    if (typeof DOMParser === "undefined") {
       return raw
-        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '')
-        .replace(/<\s*iframe[^>]*>[\s\S]*?<\s*\/\s*iframe\s*>/gi, '')
-        .replace(/<\s*(object|embed|link|meta)[^>]*>/gi, '')
-        .replace(/\son\w+="[^"]*"/gi, '')
-        .replace(/\son\w+='[^']*'/gi, '')
-        .replace(/\s(href|src)=["']\s*javascript:[^"']*["']/gi, '')
+        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, "")
+        .replace(/<\s*iframe[^>]*>[\s\S]*?<\s*\/\s*iframe\s*>/gi, "")
+        .replace(/<\s*(object|embed|link|meta)[^>]*>/gi, "")
+        .replace(/\son\w+="[^"]*"/gi, "")
+        .replace(/\son\w+='[^']*'/gi, "")
+        .replace(/\s(href|src)=["']\s*javascript:[^"']*["']/gi, "");
     }
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(raw, 'text/html')
-    const blockedTags = ['script', 'iframe', 'object', 'embed', 'link', 'meta']
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(raw, "text/html");
+    const blockedTags = ["script", "iframe", "object", "embed", "link", "meta"];
     blockedTags.forEach((tag) => {
-      doc.querySelectorAll(tag).forEach((el) => el.remove())
-    })
-    doc.querySelectorAll('*').forEach((el) => {
+      doc.querySelectorAll(tag).forEach((el) => el.remove());
+    });
+    doc.querySelectorAll("*").forEach((el) => {
       Array.from(el.attributes).forEach((attr) => {
-        const name = attr.name.toLowerCase()
-        const value = attr.value.toLowerCase()
-        if (name.startsWith('on')) {
-          el.removeAttribute(attr.name)
+        const name = attr.name.toLowerCase();
+        const value = attr.value.toLowerCase();
+        if (name.startsWith("on")) {
+          el.removeAttribute(attr.name);
         }
-        if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
-          el.removeAttribute(attr.name)
+        if (
+          (name === "href" || name === "src") &&
+          value.startsWith("javascript:")
+        ) {
+          el.removeAttribute(attr.name);
         }
-      })
-    })
-    return doc.body.innerHTML
-  }
+      });
+    });
+    return doc.body.innerHTML;
+  };
 
   const copyToClipboard = async (key: string, text: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      setCopiedKey(key)
-      setTimeout(() => setCopiedKey(null), 2000)
-      toast.success('Copied to clipboard')
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+      toast.success("Copied to clipboard");
     } catch {
-      toast.error('Failed to copy')
+      toast.error("Failed to copy");
     }
-  }
+  };
 
   const buildLandingHtml = () => {
-    const html = sanitizeHtml(campaignResult.landingPage?.htmlPreview || '')
+    const html = sanitizeHtml(landingPage?.htmlPreview || "");
     return [
-      '<!DOCTYPE html>',
+      "<!DOCTYPE html>",
       '<html lang="en">',
-      '<head>',
+      "<head>",
       '  <meta charSet="utf-8" />',
-      `  <title>${campaignResult.landingPage?.title ?? 'Landing Page'}</title>`,
+      `  <title>${landingPage?.title ?? "Landing Page"}</title>`,
       '  <meta name="viewport" content="width=device-width, initial-scale=1" />',
-      '</head>',
-      '<body>',
+      "</head>",
+      "<body>",
       html,
-      '</body>',
-      '</html>',
-    ].join('\n')
-  }
+      "</body>",
+      "</html>",
+    ].join("\n");
+  };
 
   const handleExportAll = async () => {
     try {
-      setIsExporting(true)
-      const zip = new JSZip()
+      setIsExporting(true);
+      const zip = new JSZip();
 
-      if (campaignResult.landingPage) {
-        zip.file('landing.html', buildLandingHtml())
+      if (landingPage) {
+        zip.file("landing.html", buildLandingHtml());
       }
 
       campaignResult.emails?.forEach((email: CampaignEmail, index: number) => {
-        const content = `# ${email.subject}\n\n> ${email.preview}\n\n${email.body}`
-        zip.file(`email-${index + 1}.md`, content)
-      })
+        const content = `# ${email.subject}\n\n> ${email.preview}\n\n${email.body}`;
+        zip.file(`email-${index + 1}.md`, content);
+      });
 
       campaignResult.socialPosts?.forEach((post: SocialPost, index: number) => {
-        const platform = post.platform.toLowerCase()
+        const platform = post.platform.toLowerCase();
         const content = `${post.text}\n\n${post.hashtags
-          .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-          .join(' ')}`
-        zip.file(`social-${platform}-${index + 1}.txt`, content)
-      })
+          .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
+          .join(" ")}`;
+        zip.file(`social-${platform}-${index + 1}.txt`, content);
+      });
 
       if (campaignResult.taglines?.length) {
-        zip.file('taglines.txt', campaignResult.taglines.join('\n'))
+        zip.file("taglines.txt", campaignResult.taglines.join("\n"));
       }
 
       if (campaignResult.imagePrompts?.length) {
-        zip.file('image-prompts.txt', campaignResult.imagePrompts.join('\n\n'))
+        zip.file("image-prompts.txt", campaignResult.imagePrompts.join("\n\n"));
       }
 
-      const blob = await zip.generateAsync({ type: 'blob' })
-      saveAs(blob, 'campaign-kit.zip')
-      toast.success('Exported campaign kit ZIP')
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, "campaign-kit.zip");
+      toast.success("Exported campaign kit ZIP");
     } catch (error) {
-      console.error(error)
-      toast.error('Failed to export ZIP')
+      console.error(error);
+      toast.error("Failed to export ZIP");
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }
+  };
 
   const primaryTone =
-    formValues.tones && formValues.tones.length > 0 ? formValues.tones[0] : 'Default'
+    formValues.tones && formValues.tones.length > 0
+      ? formValues.tones[0]
+      : "Default";
   const lengthLabel =
     formValues.desiredLength === 33
-      ? 'Short'
+      ? "Short"
       : formValues.desiredLength === 66
-        ? 'Medium'
-        : 'Detailed'
+        ? "Medium"
+        : "Detailed";
 
   const tabs = [
     {
-      id: 'landing',
+      id: "landing",
       icon: Globe,
-      label: 'Landing Page',
+      label: "Landing Page",
       render: () => (
         <div className="space-y-6">
           <h4
             className="text-3xl font-semibold text-foreground leading-tight"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {campaignResult.landingPage.title}
+            {landingPage.title}
           </h4>
           <p className="text-muted-foreground text-base leading-relaxed">
-            {campaignResult.landingPage.hero}
+            {landingPage.hero}
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-3">
@@ -154,12 +176,25 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                 Key Benefits
               </h5>
               <ul className="space-y-2 text-foreground/90 text-sm leading-relaxed">
-                {(campaignResult.landingPage.features ?? []).map((feature, index) => (
+                {(landingPage.features ?? []).map((feature, index) => (
                   <li key={index} className="flex gap-2">
                     <span className="mt-1 h-4 w-4 rounded-full border border-primary/40 flex items-center justify-center text-[10px]">
                       •
                     </span>
-                    <span>{feature}</span>
+                    <div>
+                      <div className="font-semibold text-foreground">
+                        {(feature as any).heading ?? (feature as any)}
+                      </div>
+                      {((feature as any).body ||
+                        (feature as any).toString()) && (
+                        <div className="text-sm text-muted-foreground">
+                          {(feature as any).body ?? ""}
+                          {(feature as any).metric
+                            ? ` — ${(feature as any).metric}`
+                            : ""}
+                        </div>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -169,7 +204,7 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                 Call to Action
               </h5>
               <p className="text-foreground/90 text-sm leading-relaxed">
-                {campaignResult.landingPage.cta}
+                {landingPage.cta}
               </p>
             </div>
           </div>
@@ -181,7 +216,7 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
               <div
                 className="prose prose-sm max-w-none dark:prose-invert"
                 dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(campaignResult.landingPage.htmlPreview),
+                  __html: sanitizeHtml(landingPage.htmlPreview),
                 }}
               />
             </div>
@@ -190,14 +225,14 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
       ),
     },
     {
-      id: 'emails',
+      id: "emails",
       icon: Mail,
-      label: 'Emails',
+      label: "Emails",
       render: () => (
         <div className="space-y-6">
           {campaignResult.emails?.length ? (
             campaignResult.emails.map((email, index) => {
-              const key = `email-${index}`
+              const key = `email-${index}`;
               return (
                 <div
                   key={key}
@@ -208,23 +243,32 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                       <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
                         Email #{index + 1}
                       </p>
-                      <h4 className="text-lg font-semibold text-foreground">{email.subject}</h4>
-                      <p className="text-sm text-muted-foreground">{email.preview}</p>
+                      <h4 className="text-lg font-semibold text-foreground">
+                        {email.subject}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {email.preview}
+                      </p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => copyToClipboard(key, `${email.subject}\n\n${email.body}`)}
+                      onClick={() =>
+                        copyToClipboard(
+                          key,
+                          `${email.subject}\n\n${email.body}`,
+                        )
+                      }
                     >
                       <Copy className="w-4 h-4 mr-2" />
-                      {copiedKey === key ? 'Copied!' : 'Copy'}
+                      {copiedKey === key ? "Copied!" : "Copy"}
                     </Button>
                   </div>
                   <pre className="whitespace-pre-wrap text-sm text-foreground/90 leading-relaxed font-sans bg-background/60 border border-border/30 rounded-lg p-4">
                     {email.body}
                   </pre>
                 </div>
-              )
+              );
             })
           ) : (
             <p className="text-sm text-muted-foreground">Generating emails…</p>
@@ -233,17 +277,17 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
       ),
     },
     {
-      id: 'social',
+      id: "social",
       icon: Share2,
-      label: 'Social Posts',
+      label: "Social Posts",
       render: () => (
         <div className="space-y-6">
           {campaignResult.socialPosts?.length ? (
             campaignResult.socialPosts.map((post, index) => {
-              const key = `social-${index}`
+              const key = `social-${index}`;
               const content = `${post.text}\n\n${post.hashtags
-                .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-                .join(' ')}`
+                .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
+                .join(" ")}`;
               return (
                 <div
                   key={key}
@@ -251,7 +295,10 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs font-semibold">
+                      <Badge
+                        variant="outline"
+                        className="text-xs font-semibold"
+                      >
                         {post.platform}
                       </Badge>
                     </div>
@@ -261,7 +308,7 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                       onClick={() => copyToClipboard(key, content)}
                     >
                       <Copy className="w-4 h-4 mr-2" />
-                      {copiedKey === key ? 'Copied!' : 'Copy'}
+                      {copiedKey === key ? "Copied!" : "Copy"}
                     </Button>
                   </div>
                   <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
@@ -269,22 +316,24 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {post.hashtags
-                      .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-                      .join(' ')}
+                      .map((tag) => (tag.startsWith("#") ? tag : `#${tag}`))
+                      .join(" ")}
                   </p>
                 </div>
-              )
+              );
             })
           ) : (
-            <p className="text-sm text-muted-foreground">Generating social posts…</p>
+            <p className="text-sm text-muted-foreground">
+              Generating social posts…
+            </p>
           )}
         </div>
       ),
     },
     {
-      id: 'extras',
+      id: "extras",
       icon: FileText,
-      label: 'Extras',
+      label: "Extras",
       render: () => (
         <div className="space-y-8">
           {campaignResult.taglines?.length ? (
@@ -304,7 +353,9 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
               </ul>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Generating taglines…</p>
+            <p className="text-sm text-muted-foreground">
+              Generating taglines…
+            </p>
           )}
 
           {campaignResult.imagePrompts?.length ? (
@@ -315,13 +366,15 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
               </h5>
               <div className="space-y-3">
                 {campaignResult.imagePrompts.map((prompt, index) => {
-                  const key = `imagePrompt-${index}`
+                  const key = `imagePrompt-${index}`;
                   return (
                     <div
                       key={key}
                       className="bg-background/60 border border-border/30 rounded-lg p-4 flex justify-between gap-4"
                     >
-                      <p className="text-sm text-foreground/90 leading-relaxed">{prompt}</p>
+                      <p className="text-sm text-foreground/90 leading-relaxed">
+                        {prompt}
+                      </p>
                       <Button
                         size="icon"
                         variant="outline"
@@ -330,17 +383,19 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Generating image prompts…</p>
+            <p className="text-sm text-muted-foreground">
+              Generating image prompts…
+            </p>
           )}
         </div>
       ),
     },
-  ]
+  ];
 
   return (
     <section className="py-20 sm:py-32 bg-background border-t border-border/20">
@@ -365,8 +420,8 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
               Your Campaign Kit is Ready
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              Preview your complete, AI-generated marketing assets. Copy, refine, and deploy with
-              confidence.
+              Preview your complete, AI-generated marketing assets. Copy,
+              refine, and deploy with confidence.
             </p>
           </div>
 
@@ -378,10 +433,13 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
               {[
-                { label: 'Product', value: formValues.productName },
-                { label: 'Goal', value: formValues.campaignGoal, badge: true },
-                { label: 'Tones', value: formValues.tones.length || 'Multiple' },
-                { label: 'Length', value: lengthLabel },
+                { label: "Product", value: formValues.productName },
+                { label: "Goal", value: formValues.campaignGoal, badge: true },
+                {
+                  label: "Tones",
+                  value: formValues.tones.length || "Multiple",
+                },
+                { label: "Length", value: lengthLabel },
               ].map((item, i) => (
                 <div
                   key={i}
@@ -395,7 +453,9 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                       {item.value}
                     </Badge>
                   ) : (
-                    <p className="text-lg font-semibold text-foreground">{item.value}</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {item.value}
+                    </p>
                   )}
                 </div>
               ))}
@@ -407,7 +467,7 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
             <Tabs defaultValue="landing" className="w-full">
               <TabsList className="w-full justify-start border-b border-border/30 bg-background/50 rounded-none px-0 h-auto gap-0">
                 {tabs.map((tab) => {
-                  const Icon = tab.icon
+                  const Icon = tab.icon;
                   return (
                     <TabsTrigger
                       key={tab.id}
@@ -415,9 +475,11 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
                       className="text-sm sm:text-base rounded-none border-r border-border/30 last:border-r-0 flex-1 data-[state=active]:bg-primary/15 data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-b-primary py-4 transition-all duration-300 hover:bg-background/30"
                     >
                       <Icon className="w-4 h-4 mr-2" />
-                      <span className="hidden sm:inline font-medium">{tab.label}</span>
+                      <span className="hidden sm:inline font-medium">
+                        {tab.label}
+                      </span>
                     </TabsTrigger>
-                  )
+                  );
                 })}
               </TabsList>
 
@@ -444,13 +506,11 @@ export function ResultsPreview({ formValues, campaignResult }: ResultsPreviewPro
               className="luxury-button bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-12 py-3.5 text-base rounded-full shadow-xl hover:shadow-2xl hover:shadow-primary/40 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4 mr-2" />
-              {isExporting ? 'Preparing ZIP...' : 'Export Full Campaign Kit'}
+              {isExporting ? "Preparing ZIP..." : "Export Full Campaign Kit"}
             </Button>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }
-
-
